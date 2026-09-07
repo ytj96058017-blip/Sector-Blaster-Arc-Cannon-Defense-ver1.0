@@ -1,0 +1,1463 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>섹터 블래스터: 아크 캐논 디펜스 (Sector Blaster: Arc Cannon Defense)</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&family=Pretendard:wght@400;600;700;900&display=swap');
+    * {
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+      user-select: none;
+      -webkit-user-select: none;
+      box-sizing: border-box;
+    }
+    .font-orbitron {
+      font-family: 'Orbitron', sans-serif;
+    }
+    @keyframes screen-error-flash {
+      0% { box-shadow: inset 0 0 90px rgba(239, 68, 68, 0.9); }
+      100% { box-shadow: inset 0 0 0 rgba(239, 68, 68, 0); }
+    }
+    .error-flash {
+      animation: screen-error-flash 0.4s ease-out;
+    }
+    @keyframes pulse-glow {
+      0%, 100% { filter: drop-shadow(0 0 8px rgba(6, 182, 212, 0.7)); }
+      50% { filter: drop-shadow(0 0 20px rgba(6, 182, 212, 1)); }
+    }
+    .anim-pulse-glow {
+      animation: pulse-glow 2s infinite ease-in-out;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col items-center justify-center p-2 sm:p-4 overflow-hidden relative">
+
+  <!-- ============================================== -->
+  <!-- 1. 메인 대기실 & 로그인 화면                    -->
+  <!-- ============================================== -->
+  <div id="screen-login" class="w-full max-w-md bg-slate-900/95 backdrop-blur-md border border-cyan-500/40 rounded-2xl p-6 sm:p-8 shadow-2xl flex flex-col relative z-30">
+    <div class="text-center mb-6">
+      <div class="inline-flex p-4 bg-cyan-950/70 rounded-2xl border border-cyan-500/50 text-cyan-400 text-3xl mb-3 shadow-lg shadow-cyan-950/60">
+        <i class="fa-solid fa-satellite-dish"></i>
+      </div>
+      <h1 class="text-2xl sm:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-sky-300 to-indigo-400 font-orbitron tracking-tight">
+        SECTOR BLASTER
+      </h1>
+      <p class="text-xs sm:text-sm text-cyan-200 mt-1 font-semibold">부채꼴 아크 캐논 디펜스 · 호와 넓이 연산 격파전</p>
+      <div class="text-[11px] text-slate-400 mt-0.5">중1 기하 · 적을 조준해 공식을 풀고 거대한 부채꼴 빔을 발사하세요!</div>
+    </div>
+
+    <!-- 학번 & 이름 입력 폼 -->
+    <div class="space-y-4 mb-6">
+      <div>
+        <label class="block text-xs font-bold text-cyan-300 mb-1.5 tracking-wider">학번 (예: 10521)</label>
+        <div class="relative">
+          <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-500">
+            <i class="fa-solid fa-id-card"></i>
+          </span>
+          <input type="text" id="input-student-id" placeholder="학번 입력" 
+            class="w-full pl-10 pr-4 py-3 bg-slate-950/80 border border-slate-700 rounded-xl focus:outline-none focus:border-cyan-400 text-sm font-semibold transition text-cyan-100" />
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-xs font-bold text-cyan-300 mb-1.5 tracking-wider">캐논 포수 닉네임 또는 이름</label>
+        <div class="relative">
+          <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-500">
+            <i class="fa-solid fa-user-astronaut"></i>
+          </span>
+          <input type="text" id="input-student-name" placeholder="이름 입력 (예: 박서준)" 
+            class="w-full pl-10 pr-4 py-3 bg-slate-950/80 border border-slate-700 rounded-xl focus:outline-none focus:border-cyan-400 text-sm font-semibold transition text-cyan-100" />
+        </div>
+      </div>
+    </div>
+
+    <!-- 출격 버튼 -->
+    <button id="btn-start-game" class="w-full py-3.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-black rounded-xl shadow-lg shadow-cyan-900/40 transition transform active:scale-95 flex items-center justify-center gap-2 text-sm sm:text-base cursor-pointer">
+      <i class="fa-solid fa-crosshairs"></i> 기지 방어전 출격하기
+    </button>
+
+    <div class="mt-4 flex gap-2">
+      <button id="btn-view-ranks" class="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl text-xs font-semibold text-cyan-300 transition flex items-center justify-center gap-1.5 cursor-pointer">
+        <i class="fa-solid fa-trophy text-amber-400"></i> 은하 랭킹
+      </button>
+      <button id="btn-view-rules" class="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl text-xs font-semibold text-slate-300 transition flex items-center justify-center gap-1.5 cursor-pointer">
+        <i class="fa-solid fa-book-journal-whills text-sky-400"></i> 전투 교본
+      </button>
+    </div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- 2. 인게임 횡스크롤 전장 화면                    -->
+  <!-- ============================================== -->
+  <div id="screen-game" class="w-full max-w-5xl h-[95vh] max-h-[900px] bg-slate-900 border border-cyan-500/40 rounded-2xl shadow-2xl flex flex-col overflow-hidden relative hidden">
+    
+    <!-- 인게임 상단 HUD -->
+    <div class="bg-slate-900/90 border-b border-cyan-900/40 px-4 py-2 flex items-center justify-between text-xs sm:text-sm z-20 backdrop-blur">
+      <div class="flex items-center gap-2 sm:gap-3">
+        <span class="px-2.5 py-1 bg-cyan-950/80 border border-cyan-500/60 rounded-lg font-black text-cyan-300 flex items-center gap-1 font-orbitron">
+          <i class="fa-solid fa-shield-halved"></i>
+          <span id="hud-sector">Sector 1</span>
+        </span>
+        <span class="font-bold text-slate-300 hidden sm:inline" id="hud-player-name">포수</span>
+        <span class="text-amber-400 font-semibold text-xs px-2.5 py-0.5 bg-amber-950/40 border border-amber-500/30 rounded-full" id="hud-title-badge">
+          원호 관측병
+        </span>
+      </div>
+
+      <div class="flex items-center gap-2 sm:gap-3">
+        <!-- 현재 캐논 유효 반지름 (r) -->
+        <div class="flex items-center gap-1 bg-slate-950 px-2.5 py-1 rounded-full border border-slate-800 text-xs font-bold text-sky-300">
+          <i class="fa-solid fa-ruler-combined text-cyan-400"></i>
+          <span>캐논 사거리 r = <strong id="hud-core-r" class="text-cyan-300 font-orbitron">6</strong></span>
+        </div>
+
+        <!-- 실시간 스톱워치 -->
+        <div class="flex items-center gap-1 bg-slate-950 px-2.5 py-1 rounded-full border border-cyan-500/40 text-xs" title="신속하게 격파할수록 대량의 스피드런 타임 보너스를 획득합니다!">
+          <i class="fa-solid fa-stopwatch text-cyan-400"></i>
+          <span id="hud-timer" class="font-black text-cyan-300 font-orbitron">00:00.0</span>
+        </div>
+
+        <!-- 기지 실드 HP -->
+        <div class="flex items-center gap-1">
+          <i class="fa-solid fa-heart-pulse text-rose-500"></i>
+          <span class="font-black text-rose-400 font-orbitron" id="hud-hp">100%</span>
+        </div>
+
+        <!-- 점수 -->
+        <div class="flex items-center gap-1">
+          <i class="fa-solid fa-star text-amber-400"></i>
+          <span class="font-black text-amber-300 font-orbitron text-sm sm:text-base" id="hud-score">0</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 인게임 메인 캔버스 뷰 -->
+    <div class="relative flex-1 bg-slate-950 overflow-hidden flex items-center justify-center">
+      <canvas id="game-canvas" class="w-full h-full block cursor-crosshair"></canvas>
+
+      <!-- 상단 상황 안내 배너 -->
+      <div id="tactical-banner" class="absolute top-3 px-4 py-1.5 bg-slate-900/90 border border-cyan-500/50 rounded-full text-xs font-bold text-cyan-300 shadow-xl pointer-events-none flex items-center gap-2 backdrop-blur">
+        <span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>
+        <span id="tactical-banner-text">오른쪽에서 침공하는 적을 클릭(터치)해 공식을 풀고 부채꼴 빔을 쏘세요!</span>
+      </div>
+
+      <!-- 기하 공식 연산 발사 콘솔 모달 -->
+      <div id="calc-console-overlay" class="hidden absolute inset-0 bg-slate-950/80 backdrop-blur-sm z-30 flex items-center justify-center p-3 sm:p-4">
+        <div class="bg-slate-900 border-2 border-cyan-400 rounded-2xl max-w-md w-full p-5 sm:p-6 shadow-2xl text-center space-y-3">
+          
+          <div class="inline-flex items-center gap-2 px-3 py-1 bg-cyan-950/80 border border-cyan-500/40 rounded-full text-cyan-300 text-xs font-bold">
+            <i class="fa-solid fa-crosshairs animate-spin"></i> 타깃 록온 성공! 아크 캐논 탄두 연산 중
+          </div>
+
+          <h3 class="text-base sm:text-lg font-black text-white" id="console-problem-title">
+            부채꼴 호의 길이(l)를 연산하여 발사하세요!
+          </h3>
+
+          <!-- 시각적 부채꼴 공식 힌트 뷰 -->
+          <div class="p-3.5 bg-slate-950 border border-slate-800 rounded-xl space-y-2 text-left text-xs sm:text-sm">
+            <div class="flex items-center justify-between">
+              <span class="text-slate-300 font-semibold" id="console-given-condition">반지름 r = 6, 중심각 x = 60°</span>
+              <span class="px-2 py-0.5 bg-sky-950 border border-sky-500/40 rounded text-[11px] font-bold text-sky-300" id="console-mode-tag">호의 길이 (l)</span>
+            </div>
+            <div class="font-black text-cyan-300 font-orbitron text-sm sm:text-base leading-snug" id="console-formula-hint">
+              적용 공식: l = 2 × π × r × (x ÷ 360)
+            </div>
+          </div>
+
+          <!-- 보기 3개 버튼 컨테이너 -->
+          <div class="grid grid-cols-3 gap-2.5 pt-1" id="console-options-container"></div>
+
+          <div class="text-[11px] text-slate-400 pt-1 flex items-center justify-center gap-1.5">
+            <i class="fa-solid fa-pen text-amber-400"></i> 연습장에 차분히 풀이한 후 올바른 탄두를 선택하세요!
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 인게임 하단: 아크 기지 상태 덱 -->
+    <div class="bg-slate-900/95 border-t border-cyan-900/40 p-2.5 sm:p-3 flex flex-col gap-2 z-20 backdrop-blur">
+      <div class="flex items-center justify-between gap-2">
+        <div class="flex items-center gap-2 text-xs">
+          <span class="px-2.5 py-1 bg-cyan-950/80 border border-cyan-500/50 rounded-lg text-cyan-300 font-bold flex items-center gap-1.5">
+            <i class="fa-solid fa-tower-broadcast text-cyan-400"></i>
+            <span>아크 캐논 포대 대기 중</span>
+          </span>
+          <span class="text-slate-400 hidden sm:inline text-[11px]">
+            * 적을 클릭하면 전장이 일시 정지되며 공식 연산 콘솔이 열립니다.
+          </span>
+        </div>
+
+        <!-- 비상 노바 파동 -->
+        <button id="btn-emergency-nova" class="px-3.5 py-1.5 bg-rose-950/80 hover:bg-rose-900 border border-rose-500/50 text-rose-300 rounded-xl font-bold text-xs transition flex items-center gap-1.5 active:scale-95 cursor-pointer" title="HP 15%를 소모하여 전방위 부채꼴 충격파를 방출합니다.">
+          <i class="fa-solid fa-burst text-rose-400"></i> 비상 노바 파동 (HP -15%)
+        </button>
+      </div>
+
+      <!-- 기하 공식 인포 바 -->
+      <div class="flex items-center justify-between text-[11px] text-slate-400 bg-slate-950/60 px-3 py-1.5 rounded-xl border border-slate-800">
+        <div class="flex items-center gap-3">
+          <span><strong class="text-cyan-400">호의 길이 l</strong> = 2 × π × r × (x ÷ 360)</span>
+          <span class="hidden md:inline"><strong class="text-sky-400">부채꼴 넓이 S</strong> = π × r² × (x ÷ 360)</span>
+          <span class="hidden sm:inline"><strong class="text-indigo-400">중심각 모를 때</strong> S = (1 ÷ 2) × r × l</span>
+        </div>
+        <div class="text-amber-400 font-bold">
+          * 중심각 2배 = 호·넓이 2배 / 현(선분)은 정비례 안 함!
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- 3. 섹터 클리어 3초 브리핑 모달                  -->
+  <!-- ============================================== -->
+  <div id="modal-wave-summary" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-slate-900 border-2 border-cyan-500/80 rounded-2xl max-w-lg w-full p-5 shadow-2xl text-center space-y-3">
+      <!-- 3초 카운트다운 게이지 바 -->
+      <div class="w-full bg-slate-950 rounded-full h-2 overflow-hidden border border-slate-800">
+        <div id="summary-progress-bar" class="bg-gradient-to-r from-cyan-400 via-sky-400 to-indigo-400 h-full w-full transition-all duration-75"></div>
+      </div>
+
+      <div class="flex items-center justify-center gap-2 text-cyan-400 text-lg font-black font-orbitron" id="summary-sector-title">
+        <i class="fa-solid fa-certificate"></i> SECTOR 1 CLEARED!
+      </div>
+
+      <!-- 부채꼴 기하 공식 분석 카드 -->
+      <div class="bg-slate-950 border border-slate-800 rounded-2xl p-4 text-left space-y-2.5 text-xs sm:text-sm">
+        <div>
+          <div class="flex items-start justify-between">
+            <span class="text-slate-400 font-medium">호의 길이 (l) 공식:</span>
+            <span class="font-black text-cyan-300 font-orbitron">l = 2 × π × r × (x ÷ 360)</span>
+          </div>
+          <div class="text-[11px] text-slate-500 pl-2 mt-0.5">원주(2πr)에 중심각의 비율(x ÷ 360)을 곱해 호의 길이를 구함</div>
+        </div>
+
+        <div class="pt-2 border-t border-slate-900">
+          <div class="flex items-start justify-between">
+            <span class="text-slate-400 font-medium">부채꼴 넓이 (S) 공식:</span>
+            <span class="font-black text-sky-300 font-orbitron">S = π × r² × (x ÷ 360)</span>
+          </div>
+          <div class="text-[11px] text-slate-500 pl-2 mt-0.5">원의 넓이(πr²)에 중심각의 비율을 곱하며, 중심각 크기에 정비례함</div>
+        </div>
+
+        <div class="pt-2 border-t border-slate-900">
+          <div class="flex items-start justify-between">
+            <span class="text-slate-400 font-medium">중심각 모를 때 넓이:</span>
+            <span class="font-black text-amber-300 font-orbitron">S = (1 ÷ 2) × r × l</span>
+          </div>
+          <div class="text-[11px] text-slate-500 pl-2 mt-0.5">반지름(r)과 호의 길이(l)만 알면 삼각형 넓이처럼 바로 연산 가능!</div>
+        </div>
+      </div>
+
+      <!-- 정산 내역 카드 -->
+      <div class="space-y-1.5 px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs">
+        <div class="flex justify-between items-center font-bold">
+          <span class="text-slate-400"><i class="fa-solid fa-stopwatch text-cyan-400 mr-1.5"></i> 섹터 돌파 시간:</span>
+          <span class="text-cyan-300 font-orbitron text-sm" id="summary-sector-time">0.0s</span>
+        </div>
+        <div class="flex justify-between items-center font-bold border-t border-slate-900 pt-1.5">
+          <span class="text-slate-400"><i class="fa-solid fa-bolt text-amber-400 mr-1.5"></i> 섹터 클리어 + 신속 보너스:</span>
+          <span class="text-amber-300 font-orbitron text-sm" id="summary-sector-bonus">+1,800P</span>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between pt-1 text-xs">
+        <span class="text-slate-400 font-medium" id="summary-countdown-text">3.0초 후 다음 섹터 진입...</span>
+        <button id="btn-summary-skip" class="px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-slate-950 font-black rounded-xl text-xs transition shadow-lg flex items-center gap-1.5 active:scale-95 cursor-pointer">
+          즉시 출격 <i class="fa-solid fa-forward-step"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- 4. 오답 기하 학습 피드백 모달                   -->
+  <!-- ============================================== -->
+  <div id="modal-feedback" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-slate-900 border-2 border-rose-500/80 rounded-2xl max-w-lg w-full p-6 shadow-2xl">
+      <div class="flex items-center gap-3 text-rose-400 mb-4">
+        <div class="p-3 bg-rose-950/80 rounded-xl border border-rose-500/40 text-2xl">
+          <i class="fa-solid fa-shield-virus"></i>
+        </div>
+        <div>
+          <h2 class="text-lg font-bold text-white" id="fb-title">아크 탄두 연산 착오! (기지 실드 피격)</h2>
+          <p class="text-xs text-rose-300" id="fb-subtitle">중심각과 호의 길이, 넓이 공식을 점검하세요.</p>
+        </div>
+      </div>
+
+      <div class="bg-slate-950 border border-slate-800 rounded-xl p-4 mb-5 space-y-2.5 text-xs sm:text-sm">
+        <div class="font-bold text-amber-300 flex items-center gap-1.5">
+          <i class="fa-solid fa-graduation-cap"></i> 부채꼴 기하학 법칙 해설
+        </div>
+        <div id="fb-desc" class="text-slate-300 leading-relaxed space-y-1.5"></div>
+        <div class="p-3 bg-slate-900 rounded-lg border border-slate-800 text-cyan-300 font-orbitron text-center font-bold text-sm" id="fb-formula"></div>
+      </div>
+
+      <div class="flex gap-3">
+        <button id="btn-fb-retry" class="flex-1 py-3 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black rounded-xl text-xs sm:text-sm transition flex items-center justify-center gap-2 cursor-pointer">
+          <i class="fa-solid fa-rotate-right"></i> 다시 풀이하기 (재도전)
+        </button>
+        <button id="btn-fb-skip" class="flex-1 py-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 font-semibold rounded-xl text-xs sm:text-sm transition flex items-center justify-center gap-2 cursor-pointer">
+          <i class="fa-solid fa-forward"></i> 충격파 방출 후 계속
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- 5. 게임 오버 / 클리어 모달                     -->
+  <!-- ============================================== -->
+  <div id="modal-gameover" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-slate-900 border border-cyan-500/40 rounded-2xl max-w-md w-full p-6 text-center shadow-2xl">
+      <div class="w-16 h-16 mx-auto bg-cyan-950/80 border border-cyan-400 rounded-2xl flex items-center justify-center text-3xl text-cyan-400 mb-4 shadow-lg shadow-cyan-900/50">
+        <i class="fa-solid fa-award"></i>
+      </div>
+      <h2 class="text-2xl font-black text-white mb-1 font-orbitron">DEFENSE REPORT</h2>
+      <p class="text-xs text-slate-400 mb-5">아크 캐논 방어 성적이 구글 스프레드시트에 전송됩니다.</p>
+
+      <div class="bg-slate-950 border border-slate-800 rounded-2xl p-4 mb-5 space-y-2 text-left text-xs sm:text-sm">
+        <div class="flex justify-between text-slate-400">
+          <span>포수 파일럿</span>
+          <span class="font-bold text-white" id="res-player-name">-</span>
+        </div>
+        <div class="flex justify-between text-slate-400">
+          <span>최종 획득 점수</span>
+          <span class="font-black text-amber-400 text-base font-orbitron" id="res-final-score">0</span>
+        </div>
+        <div class="flex justify-between text-slate-400">
+          <span>총 방어 소요 시간</span>
+          <span class="font-bold text-cyan-300 font-orbitron" id="res-total-time">00:00.0</span>
+        </div>
+        <div class="flex justify-between text-slate-400">
+          <span>도달 섹터</span>
+          <span class="font-bold text-sky-300" id="res-sector">Sector 1</span>
+        </div>
+        <div class="flex justify-between text-slate-400">
+          <span>수여된 20단계 기하 칭호</span>
+          <span class="font-bold text-amber-300" id="res-title-text">-</span>
+        </div>
+        <div class="flex justify-between text-slate-400 border-t border-slate-800 pt-2">
+          <span>격파 적기 / 연산 실수 횟수</span>
+          <span class="font-mono text-slate-300" id="res-stats">0기 / 0회</span>
+        </div>
+      </div>
+
+      <div id="upload-status" class="text-xs text-cyan-400 mb-4 font-semibold flex items-center justify-center gap-2">
+        <i class="fa-solid fa-spinner fa-spin"></i> 구글 시트로 기록 전송 중...
+      </div>
+
+      <div class="flex gap-2">
+        <button id="btn-restart-game" class="flex-1 py-3 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 text-slate-950 font-black rounded-xl text-xs sm:text-sm transition cursor-pointer">
+          <i class="fa-solid fa-rotate-right"></i> 다시 출격하기
+        </button>
+        <button id="btn-go-hall-of-fame" class="flex-1 py-3 bg-slate-800 hover:bg-slate-700 text-amber-400 border border-amber-500/30 font-bold rounded-xl text-xs sm:text-sm transition cursor-pointer">
+          <i class="fa-solid fa-trophy"></i> 랭킹 보기
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- 6. 실시간 랭킹 모달                            -->
+  <!-- ============================================== -->
+  <div id="modal-ranking" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 hidden">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-2xl w-full max-h-[85vh] flex flex-col p-5 shadow-2xl">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-3">
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-trophy text-amber-400 text-xl"></i>
+          <h2 class="text-lg font-bold text-white font-orbitron">HALL OF FAME</h2>
+        </div>
+        <button id="btn-close-ranking" class="text-slate-400 hover:text-white text-lg p-1 cursor-pointer">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="flex-1 overflow-y-auto space-y-2 pr-1" id="ranking-list-container">
+        <div class="text-center py-12 text-slate-500 text-xs">
+          <i class="fa-solid fa-circle-notch fa-spin text-2xl mb-2 text-cyan-400"></i>
+          <p>구글 시트 랭킹 데이터를 실시간 집계하는 중...</p>
+        </div>
+      </div>
+
+      <div class="pt-3 mt-2 border-t border-slate-800 flex justify-between items-center text-xs text-slate-500">
+        <span>* Apps Script 백엔드 연동 가동 중</span>
+        <button id="btn-refresh-ranking" class="text-cyan-400 hover:underline flex items-center gap-1 font-semibold cursor-pointer">
+          <i class="fa-solid fa-arrows-rotate"></i> 새로고침
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- 7. 전투 비행 교본                             -->
+  <!-- ============================================== -->
+  <div id="modal-rules" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-lg w-full p-6 shadow-2xl text-xs sm:text-sm">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-3 mb-4">
+        <h2 class="text-lg font-bold text-cyan-300 flex items-center gap-2">
+          <i class="fa-solid fa-book-journal-whills text-sky-400"></i> 아크 캐논 디펜스 3대 수칙
+        </h2>
+        <button id="btn-close-rules" class="text-slate-400 hover:text-white text-base cursor-pointer">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="space-y-3 text-slate-300 max-h-[60vh] overflow-y-auto pr-2 leading-relaxed">
+        <div class="p-3 bg-slate-950 rounded-xl border border-slate-800">
+          <div class="font-bold text-cyan-400 mb-1">1. 타깃 록온 & 안전 공식 연산</div>
+          <p>오른쪽에서 다가오는 적기를 클릭(터치)하면 <strong>전장이 일시 멈추며 연산 콘솔</strong>이 열립니다. 차분히 종이에 풀이한 후 정확한 답을 선택하세요!</p>
+        </div>
+        <div class="p-3 bg-slate-950 rounded-xl border border-slate-800">
+          <div class="font-bold text-sky-400 mb-1">2. 부채꼴 빔 방사 & 스플래시 넉백</div>
+          <p>정답을 맞히면 왼쪽 기지에서 중심각(x°)에 비례하는 <strong>거대한 부채꼴 빔</strong>이 방출되어 목표 적을 일격 격파하고 궤적 상의 주변 적들을 뒤로 밀어냅니다!</p>
+        </div>
+        <div class="p-3 bg-slate-950 rounded-xl border border-slate-800">
+          <div class="font-bold text-rose-400 mb-1">3. '현' 실드 적기의 정비례 함정 주의</div>
+          <p>직선 실드를 두른 적기는 <strong>현의 길이가 중심각에 정비례하지 않으므로</strong> 공식 계산 시 현의 성질에 유의해야 합니다.</p>
+        </div>
+      </div>
+      <button id="btn-rules-ok" class="mt-5 w-full py-2.5 bg-cyan-600 hover:bg-cyan-500 font-black text-slate-950 rounded-xl cursor-pointer">
+        전투 교본 숙지 완료
+      </button>
+    </div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- 8. 자바스크립트 디펜스 엔진                     -->
+  <!-- ============================================== -->
+  <script>
+    /* 백엔드 연동 및 20단계 칭호 체계 설정 */
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxT4bVw7f9mRR6xFoUjHkmAE-_RYf-SyOw0CaX-vurrEcqb55r2oPle9CN9H9b04Tf0/exec";
+
+    const TITLE_TIERS = [
+      { min: 0, title: "원호 관측병" },
+      { min: 3501, title: "중심각 슬라이서" },
+      { min: 8001, title: "정비례 에너지 제어사" },
+      { min: 14001, title: "넓이 비례 방사관" },
+      { min: 21501, title: "2파이알(2πr) 궤도병" },
+      { min: 30001, title: "360분의 x 조준사" },
+      { min: 39501, title: "호의 길이 정밀 타격수" },
+      { min: 50001, title: "반지름 2배 증폭자" },
+      { min: 62001, title: "파이알제곱(πr²) 폭격기" },
+      { min: 75501, title: "섹터 에어리어 연산관" },
+      { min: 90501, title: "현(Chord)의 함정 파파가" },
+      { min: 107001, title: "비선형 현 실드 브레이커" },
+      { min: 125001, title: "2분의 1알엘(1/2rl) 마스터" },
+      { min: 144501, title: "호와 넓이의 듀얼 아키텍트" },
+      { min: 165501, title: "원주율 파이(π)의 연금술사" },
+      { min: 188001, title: "다차원 피자 슬라이서" },
+      { min: 212001, title: "초공간 호(Arc) 제어군주" },
+      { min: 237501, title: "부채꼴 절대기하 수호자" },
+      { min: 264501, title: "우주 원환의 절대 지배자" },
+      { min: 293001, title: "무한 회전의 섹터 창조신" }
+    ];
+
+    function getTitleByScore(score) {
+      let current = TITLE_TIERS[0].title;
+      for (const t of TITLE_TIERS) {
+        if (score >= t.min) current = t.title;
+        else break;
+      }
+      return current;
+    }
+
+    let player = {
+      studentId: "",
+      name: "",
+      score: 0,
+      sector: 1,
+      hp: 100,
+      blastedCount: 0,
+      mistakes: 0,
+      cannonRadiusR: 6
+    };
+
+    let gameState = "LOGIN";
+    let animationFrameId = null;
+
+    let gameStartTimeMs = 0;
+    let sectorStartTimeMs = 0;
+    let stopwatchInterval = null;
+
+    const canvas = document.getElementById("game-canvas");
+    const ctx = canvas.getContext("2d");
+
+    let enemies = [];
+    let sectorBeams = [];
+    let particles = [];
+    let activeTargetEnemy = null;
+    let sectorTargetCount = 6;
+    let sectorDefeatedCount = 0;
+
+    function resizeCanvas() {
+      if (!canvas || !canvas.parentElement) return;
+      canvas.width = canvas.parentElement.clientWidth;
+      canvas.height = canvas.parentElement.clientHeight;
+    }
+    window.addEventListener("resize", resizeCanvas);
+
+    let audioCtx = null;
+    function initAudio() {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+    }
+
+    function playSound(type) {
+      try {
+        initAudio();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        const now = audioCtx.currentTime;
+
+        if (type === 'beam') {
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(450, now);
+          osc.frequency.exponentialRampToValueAtTime(120, now + 0.35);
+          gain.gain.setValueAtTime(0.4, now);
+          gain.gain.linearRampToValueAtTime(0, now + 0.35);
+          osc.start(now);
+          osc.stop(now + 0.35);
+        } else if (type === 'hit') {
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(560, now);
+          osc.frequency.setValueAtTime(840, now + 0.08);
+          gain.gain.setValueAtTime(0.35, now);
+          gain.gain.linearRampToValueAtTime(0, now + 0.25);
+          osc.start(now);
+          osc.stop(now + 0.25);
+        } else if (type === 'lock') {
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(900, now);
+          osc.frequency.setValueAtTime(1200, now + 0.06);
+          gain.gain.setValueAtTime(0.25, now);
+          gain.gain.linearRampToValueAtTime(0, now + 0.12);
+          osc.start(now);
+          osc.stop(now + 0.12);
+        } else if (type === 'error') {
+          osc.type = 'square';
+          osc.frequency.setValueAtTime(140, now);
+          osc.frequency.setValueAtTime(80, now + 0.2);
+          gain.gain.setValueAtTime(0.4, now);
+          gain.gain.linearRampToValueAtTime(0, now + 0.3);
+          osc.start(now);
+          osc.stop(now + 0.3);
+        }
+      } catch (e) {}
+    }
+
+    class DefenseEnemy {
+      constructor(spawnX, y, sectorNum, index) {
+        this.x = spawnX;
+        this.y = y;
+        this.radius = 24;
+        this.speed = (0.35 + Math.random() * 0.15) * (1 + (sectorNum - 1) * 0.04);
+        this.id = "enemy_" + Date.now() + "_" + Math.random();
+        this.engineAnim = Math.random() * Math.PI * 2;
+
+        const r = player.cannonRadiusR;
+        const mode = (index % 4);
+        this.mode = mode;
+
+        if (mode === 0) {
+          const angles = [30, 45, 60, 90, 120, 150];
+          this.angleX = angles[Math.floor(Math.random() * angles.length)];
+          this.r = r;
+          this.correctPi = Math.round((2 * r * (this.angleX / 360)) * 10) / 10;
+          this.typeName = "호의 길이 (l)";
+          this.labelBadge = `요구 호 l = ?`;
+          this.questionDesc = `반지름 r = ${r}, 중심각 x = ${this.angleX}° 일 때 호의 길이 l은?`;
+          this.formulaHint = `적용 공식: l = 2 × π × r × (x ÷ 360)`;
+          this.correctAnswer = `${this.correctPi}π`;
+          this.wrongs = [`${this.correctPi + 2}π`, `${Math.max(1, this.correctPi - 1)}π`, `${this.correctPi * 2}π`];
+        } else if (mode === 1) {
+          const angles = [30, 60, 90, 120];
+          this.angleX = angles[Math.floor(Math.random() * angles.length)];
+          this.r = r;
+          this.correctPi = Math.round((r * r * (this.angleX / 360)) * 10) / 10;
+          this.typeName = "부채꼴 넓이 (S)";
+          this.labelBadge = `요구 넓이 S = ?`;
+          this.questionDesc = `반지름 r = ${r}, 중심각 x = ${this.angleX}° 일 때 부채꼴 넓이 S는?`;
+          this.formulaHint = `적용 공식: S = π × r² × (x ÷ 360)`;
+          this.correctAnswer = `${this.correctPi}π`;
+          this.wrongs = [`${this.correctPi + 4}π`, `${this.correctPi * 2}π`, `${Math.max(2, this.correctPi - 3)}π`];
+        } else if (mode === 2) {
+          this.angleX = 90;
+          this.r = r;
+          const l_val = 4;
+          this.correctPi = 0.5 * r * l_val;
+          this.typeName = "중심각 모를 때 넓이";
+          this.labelBadge = `S = (1÷2)rl`;
+          this.questionDesc = `반지름 r = ${r}, 호의 길이 l = ${l_val}π 일 때 부채꼴 넓이 S는?`;
+          this.formulaHint = `적용 공식: S = (1 ÷ 2) × r × l`;
+          this.correctAnswer = `${this.correctPi}π`;
+          this.wrongs = [`${this.correctPi * 2}π`, `${this.correctPi + 6}π`, `${Math.max(3, this.correctPi - 4)}π`];
+        } else {
+          this.angleX = 60;
+          this.r = r;
+          this.typeName = "현(Chord)의 성질";
+          this.labelBadge = `현 실드`;
+          this.questionDesc = `중심각이 2배가 되면 '현(선분)'의 길이는?`;
+          this.formulaHint = `기하 법칙: 호(l)·넓이(S)는 정비례, 현(선분)은 정비례 안 함!`;
+          this.correctAnswer = `정비례 안 함`;
+          this.wrongs = [`정확히 2배`, `4배로 증가`];
+        }
+      }
+
+      update(baseX) {
+        if (activeTargetEnemy) return false;
+
+        this.x -= this.speed;
+        this.engineAnim += 0.2;
+
+        if (this.x <= baseX + 45) {
+          player.hp = Math.max(0, player.hp - 15);
+          triggerScreenFlash();
+          playSound('error');
+          createSparks(this.x, this.y, "#f43f5e");
+          updateHUD();
+
+          if (player.hp <= 0) {
+            triggerGameOver();
+          }
+          return true;
+        }
+        return false;
+      }
+
+      draw() {
+        ctx.save();
+        ctx.translate(this.x, this.y);
+
+        const flameLength = 12 + Math.sin(this.engineAnim) * 5;
+        ctx.beginPath();
+        ctx.moveTo(14, -6);
+        ctx.lineTo(14 + flameLength, 0);
+        ctx.lineTo(14, 6);
+        ctx.closePath();
+        ctx.fillStyle = (this.mode === 3) ? "rgba(244, 63, 94, 0.8)" : "rgba(56, 189, 248, 0.8)";
+        ctx.shadowColor = (this.mode === 3) ? "#f43f5e" : "#38bdf8";
+        ctx.shadowBlur = 10;
+        ctx.fill();
+
+        if (this.mode === 3) {
+          ctx.beginPath();
+          ctx.moveTo(-18, 0);
+          ctx.lineTo(-8, -16);
+          ctx.lineTo(14, -14);
+          ctx.lineTo(18, 0);
+          ctx.lineTo(14, 14);
+          ctx.lineTo(-8, 16);
+          ctx.closePath();
+          ctx.fillStyle = "rgba(76, 5, 25, 0.85)";
+          ctx.strokeStyle = "#fb7185";
+          ctx.lineWidth = 2.5;
+          ctx.shadowColor = "#f43f5e";
+          ctx.shadowBlur = 12;
+          ctx.fill();
+          ctx.stroke();
+
+          ctx.beginPath();
+          ctx.moveTo(-24, -18);
+          ctx.lineTo(-24, 18);
+          ctx.strokeStyle = "#ffffff";
+          ctx.lineWidth = 4;
+          ctx.shadowColor = "#ffffff";
+          ctx.shadowBlur = 14;
+          ctx.stroke();
+
+          ctx.beginPath();
+          ctx.arc(0, 0, 4.5, 0, Math.PI * 2);
+          ctx.fillStyle = "#f43f5e";
+          ctx.fill();
+        } else if (this.mode === 1) {
+          ctx.beginPath();
+          ctx.moveTo(-22, 0);
+          ctx.lineTo(12, -18);
+          ctx.lineTo(6, -6);
+          ctx.lineTo(14, 0);
+          ctx.lineTo(6, 6);
+          ctx.lineTo(12, 18);
+          ctx.closePath();
+          ctx.fillStyle = "rgba(120, 53, 15, 0.85)";
+          ctx.strokeStyle = "#f59e0b";
+          ctx.lineWidth = 2.5;
+          ctx.shadowColor = "#f59e0b";
+          ctx.shadowBlur = 14;
+          ctx.fill();
+          ctx.stroke();
+
+          ctx.fillStyle = "#fbbf24";
+          ctx.beginPath();
+          ctx.arc(8, -10, 2.5, 0, Math.PI * 2);
+          ctx.arc(8, 10, 2.5, 0, Math.PI * 2);
+          ctx.fill();
+        } else if (this.mode === 2) {
+          ctx.beginPath();
+          ctx.moveTo(-20, 0);
+          ctx.lineTo(-4, -16);
+          ctx.lineTo(6, -14);
+          ctx.lineTo(2, -4);
+          ctx.lineTo(12, 0);
+          ctx.lineTo(2, 4);
+          ctx.lineTo(6, 14);
+          ctx.lineTo(-4, 16);
+          ctx.closePath();
+          ctx.fillStyle = "rgba(30, 27, 75, 0.85)";
+          ctx.strokeStyle = "#818cf8";
+          ctx.lineWidth = 2.5;
+          ctx.shadowColor = "#818cf8";
+          ctx.shadowBlur = 12;
+          ctx.fill();
+          ctx.stroke();
+
+          ctx.beginPath();
+          ctx.arc(-2, 0, 4, 0, Math.PI * 2);
+          ctx.fillStyle = "#a5b4fc";
+          ctx.fill();
+        } else {
+          ctx.beginPath();
+          ctx.moveTo(-22, 0);
+          ctx.quadraticCurveTo(-10, -18, 10, -14);
+          ctx.lineTo(6, -4);
+          ctx.lineTo(12, 0);
+          ctx.lineTo(6, 4);
+          ctx.lineTo(10, 14);
+          ctx.quadraticCurveTo(-10, 18, -22, 0);
+          ctx.closePath();
+          ctx.fillStyle = "rgba(8, 47, 73, 0.85)";
+          ctx.strokeStyle = "#38bdf8";
+          ctx.lineWidth = 2.5;
+          ctx.shadowColor = "#38bdf8";
+          ctx.shadowBlur = 12;
+          ctx.fill();
+          ctx.stroke();
+
+          ctx.beginPath();
+          ctx.arc(-6, 0, 4, 0, Math.PI * 2);
+          ctx.fillStyle = "#38bdf8";
+          ctx.fill();
+        }
+
+        ctx.beginPath();
+        ctx.arc(0, 0, this.radius + 6, 0, Math.PI * 2);
+        ctx.strokeStyle = (this.mode === 3) ? "rgba(251, 113, 133, 0.5)" : "rgba(56, 189, 248, 0.5)";
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([4, 4]);
+        ctx.stroke();
+
+        ctx.restore();
+
+        ctx.save();
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "bold 11px Pretendard, sans-serif";
+        ctx.textAlign = "center";
+        ctx.shadowColor = "#000000";
+        ctx.shadowBlur = 4;
+        ctx.fillText(this.labelBadge, this.x, this.y - this.radius - 8);
+
+        ctx.fillStyle = (this.mode === 3) ? "#fb7185" : "#38bdf8";
+        ctx.font = "bold 9px Pretendard, sans-serif";
+        ctx.fillText("[타깃 록온]", this.x, this.y + this.radius + 15);
+        ctx.restore();
+      }
+
+      containsPoint(px, py) {
+        return Math.hypot(this.x - px, this.y - py) <= (this.radius + 16);
+      }
+    }
+
+    class SectorBeamWave {
+      constructor(bx, by, centerAngle, halfSpread, angleDeg) {
+        this.bx = bx;
+        this.by = by;
+        this.centerAngle = centerAngle;
+        this.halfSpread = halfSpread;
+        this.angleDeg = angleDeg;
+        this.currentR = 50;
+        this.maxR = Math.hypot(canvas.width, canvas.height);
+        this.speed = 36;
+        this.alpha = 0.85;
+        this.hitEnemies = new Set(); // 빔 1회당 적기 넉백 중복 적용 방지
+      }
+
+      update() {
+        this.currentR += this.speed;
+        this.alpha -= 0.035;
+        return (this.currentR >= this.maxR || this.alpha <= 0);
+      }
+
+      draw() {
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, this.alpha);
+
+        const startAngle = this.centerAngle - this.halfSpread;
+        const endAngle = this.centerAngle + this.halfSpread;
+
+        ctx.beginPath();
+        ctx.moveTo(this.bx, this.by);
+        ctx.arc(this.bx, this.by, this.currentR, startAngle, endAngle);
+        ctx.closePath();
+
+        const grad = ctx.createRadialGradient(this.bx, this.by, 20, this.bx, this.by, this.currentR);
+        grad.addColorStop(0, "rgba(56, 189, 248, 0.4)");
+        grad.addColorStop(0.8, "rgba(6, 182, 212, 0.25)");
+        grad.addColorStop(1, "rgba(255, 255, 255, 0.6)");
+        ctx.fillStyle = grad;
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.arc(this.bx, this.by, this.currentR, startAngle, endAngle);
+        ctx.strokeStyle = "#38bdf8";
+        ctx.lineWidth = 4;
+        ctx.shadowColor = "#38bdf8";
+        ctx.shadowBlur = 18;
+        ctx.stroke();
+
+        ctx.restore();
+      }
+    }
+
+    function checkBeamSplashCollisions(beam) {
+      for (const enemy of enemies) {
+        // 이미 해당 빔에 맞고 밀려난 적은 중복 넉백 제외
+        if (beam.hitEnemies.has(enemy.id)) continue;
+
+        const dist = Math.hypot(enemy.x - beam.bx, enemy.y - beam.by);
+        if (Math.abs(dist - beam.currentR) < 35) {
+          let ang = Math.atan2(enemy.y - beam.by, enemy.x - beam.bx);
+          let diff = ang - beam.centerAngle;
+          while (diff < -Math.PI) diff += Math.PI * 2;
+          while (diff > Math.PI) diff -= Math.PI * 2;
+
+          if (Math.abs(diff) <= beam.halfSpread) {
+            beam.hitEnemies.add(enemy.id);
+            // 빔 하나당 약 35px만 가볍게 밀려나며 화면 바깥으로 나가지 않도록 보정
+            const maxPushX = canvas.width - 40;
+            enemy.x = Math.min(maxPushX, enemy.x + 35);
+            createSparks(enemy.x, enemy.y, "#38bdf8");
+          }
+        }
+      }
+    }
+
+    function drawBaseCannon() {
+      const baseX = 45;
+      const baseY = canvas.height / 2;
+
+      ctx.save();
+
+      // 기지 에너지 돔
+      ctx.beginPath();
+      ctx.arc(0, baseY, 65, -Math.PI / 2, Math.PI / 2);
+      ctx.fillStyle = "rgba(8, 47, 73, 0.85)";
+      ctx.strokeStyle = "#06b6d4";
+      ctx.lineWidth = 3;
+      ctx.shadowColor = "#06b6d4";
+      ctx.shadowBlur = 16;
+      ctx.fill();
+      ctx.stroke();
+
+      // 아크 캐논 포신
+      ctx.beginPath();
+      ctx.moveTo(baseX - 10, baseY - 12);
+      ctx.lineTo(baseX + 28, baseY - 6);
+      ctx.lineTo(baseX + 28, baseY + 6);
+      ctx.lineTo(baseX - 10, baseY + 12);
+      ctx.closePath();
+      ctx.fillStyle = "#0284c7";
+      ctx.strokeStyle = "#38bdf8";
+      ctx.lineWidth = 2;
+      ctx.fill();
+      ctx.stroke();
+
+      // 캐논 코어 발광체
+      ctx.beginPath();
+      ctx.arc(baseX - 5, baseY, 15, 0, Math.PI * 2);
+      ctx.fillStyle = "#38bdf8";
+      ctx.shadowColor = "#38bdf8";
+      ctx.shadowBlur = 20;
+      ctx.fill();
+
+      // 포구 링
+      ctx.beginPath();
+      ctx.ellipse(baseX + 28, baseY, 4, 9, 0, 0, Math.PI * 2);
+      ctx.fillStyle = "#e0f2fe";
+      ctx.fill();
+
+      ctx.restore();
+    }
+
+    function setupSector(sectorNum) {
+      player.sector = sectorNum;
+      sectorDefeatedCount = 0;
+      sectorTargetCount = 5 + sectorNum;
+      sectorStartTimeMs = Date.now();
+      enemies = [];
+      sectorBeams = [];
+      activeTargetEnemy = null;
+
+      if (player.sector >= 5) {
+        player.cannonRadiusR = 12;
+      } else {
+        player.cannonRadiusR = 6;
+      }
+
+      const spawnBaseX = canvas.width + 60;
+      const playableTop = 70;
+      const playableBottom = canvas.height - 70;
+      const usableHeight = Math.max(100, playableBottom - playableTop);
+
+      for (let i = 0; i < sectorTargetCount; i++) {
+        const y = playableTop + ((i % 5) + 0.5) * (usableHeight / 5) + (Math.random() * 20 - 10);
+        const x = spawnBaseX + i * (95 + Math.random() * 40);
+        enemies.push(new DefenseEnemy(x, y, sectorNum, i));
+      }
+
+      updateHUD();
+      alertBanner(`[Sector ${sectorNum}] 적기 ${sectorTargetCount}기 진격 감지! 적을 클릭해 공식을 푸세요!`);
+    }
+
+    function startStopwatch() {
+      if (stopwatchInterval) clearInterval(stopwatchInterval);
+      gameStartTimeMs = Date.now();
+      stopwatchInterval = setInterval(() => {
+        if (gameState !== "PLAYING") return;
+        const diff = Date.now() - gameStartTimeMs;
+        const mins = Math.floor(diff / 60000);
+        const secs = Math.floor((diff % 60000) / 1000);
+        const tenths = Math.floor((diff % 1000) / 100);
+        const el = document.getElementById("hud-timer");
+        if (el) {
+          el.innerText = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}.${tenths}`;
+        }
+      }, 100);
+    }
+
+    function stopStopwatch() {
+      if (stopwatchInterval) {
+        clearInterval(stopwatchInterval);
+        stopwatchInterval = null;
+      }
+    }
+
+    function updateHUD() {
+      document.getElementById("hud-sector").innerText = `Sector ${player.sector}`;
+      document.getElementById("hud-player-name").innerText = `${player.name} (${player.studentId})`;
+      document.getElementById("hud-core-r").innerText = player.cannonRadiusR;
+      document.getElementById("hud-hp").innerText = `${Math.round(Math.max(0, player.hp))}%`;
+      document.getElementById("hud-score").innerText = player.score.toLocaleString();
+      document.getElementById("hud-title-badge").innerText = getTitleByScore(player.score);
+    }
+
+    function alertBanner(text) {
+      const banner = document.getElementById("tactical-banner-text");
+      if (banner) banner.innerText = text;
+    }
+
+    function handleCanvasClick(e) {
+      if (gameState !== "PLAYING" || activeTargetEnemy) return;
+
+      const rect = canvas.getBoundingClientRect();
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      const clickX = clientX - rect.left;
+      const clickY = clientY - rect.top;
+
+      let clickedEnemy = null;
+      for (const enemy of enemies) {
+        if (enemy.containsPoint(clickX, clickY)) {
+          clickedEnemy = enemy;
+          break;
+        }
+      }
+
+      if (clickedEnemy) {
+        openTargetConsole(clickedEnemy);
+      }
+    }
+
+    canvas.addEventListener("click", handleCanvasClick);
+    canvas.addEventListener("touchstart", (e) => {
+      handleCanvasClick(e);
+    }, { passive: true });
+
+    function openTargetConsole(enemy) {
+      activeTargetEnemy = enemy;
+      playSound('lock');
+
+      const overlay = document.getElementById("calc-console-overlay");
+      const titleEl = document.getElementById("console-problem-title");
+      const conditionEl = document.getElementById("console-given-condition");
+      const modeTagEl = document.getElementById("console-mode-tag");
+      const formulaEl = document.getElementById("console-formula-hint");
+      const optionsContainer = document.getElementById("console-options-container");
+
+      titleEl.innerText = enemy.questionDesc;
+      conditionEl.innerText = `반지름 r = ${enemy.r}, 중심각 x = ${enemy.angleX}°`;
+      modeTagEl.innerText = enemy.typeName;
+      formulaEl.innerText = enemy.formulaHint;
+
+      let choices = [enemy.correctAnswer, ...enemy.wrongs.slice(0, 2)];
+      choices.sort(() => Math.random() - 0.5);
+
+      optionsContainer.innerHTML = "";
+      choices.forEach(ans => {
+        const btn = document.createElement("button");
+        btn.className = "py-3 bg-slate-800 hover:bg-cyan-600 hover:text-slate-950 border border-cyan-500/40 hover:border-cyan-300 font-orbitron font-black text-cyan-300 rounded-xl text-sm sm:text-base transition transform active:scale-95 shadow-md flex items-center justify-center cursor-pointer";
+        btn.innerText = ans;
+        btn.onclick = () => handleConsoleAnswer(ans, enemy);
+        optionsContainer.appendChild(btn);
+      });
+
+      overlay.classList.remove("hidden");
+    }
+
+    function closeTargetConsole() {
+      document.getElementById("calc-console-overlay").classList.add("hidden");
+      activeTargetEnemy = null;
+    }
+
+    function handleConsoleAnswer(selected, enemy) {
+      if (selected === enemy.correctAnswer) {
+        closeTargetConsole();
+        playSound('beam');
+
+        const baseX = 45;
+        const baseY = canvas.height / 2;
+        const targetAngle = Math.atan2(enemy.y - baseY, enemy.x - baseX);
+        const halfSpread = ((enemy.angleX * Math.PI) / 180) / 2;
+
+        sectorBeams.push(new SectorBeamWave(baseX, baseY, targetAngle, halfSpread, enemy.angleX));
+
+        const hitScore = 350 + (player.sector * 30);
+        player.score += hitScore;
+        player.blastedCount++;
+
+        createSparks(enemy.x, enemy.y, (enemy.mode === 3) ? "#f43f5e" : "#38bdf8");
+        const idx = enemies.indexOf(enemy);
+        if (idx !== -1) enemies.splice(idx, 1);
+
+        sectorDefeatedCount++;
+        updateHUD();
+
+        if (enemies.length === 0) {
+          triggerSectorCleared();
+        }
+      } else {
+        closeTargetConsole();
+        player.mistakes++;
+        player.hp = Math.max(0, player.hp - 12);
+        playSound('error');
+        triggerScreenFlash();
+        updateHUD();
+
+        showFeedbackModal(enemy, selected);
+
+        if (player.hp <= 0) {
+          triggerGameOver();
+        }
+      }
+    }
+
+    function showFeedbackModal(enemy, selectedAnswer) {
+      const modal = document.getElementById("modal-feedback");
+      const titleEl = document.getElementById("fb-title");
+      const subEl = document.getElementById("fb-subtitle");
+      const descEl = document.getElementById("fb-desc");
+      const formulaEl = document.getElementById("fb-formula");
+
+      titleEl.innerText = `탄두 연산 착오! (${selectedAnswer} 선택)`;
+      subEl.innerText = `${enemy.typeName} 기하학적 풀이 과정을 점검하세요.`;
+
+      if (enemy.mode === 0) {
+        descEl.innerHTML = `
+          <p>호의 길이는 <strong>원주(2 × π × r)</strong>에 전체 원에 대한 <strong>중심각의 비율(x ÷ 360)</strong>을 곱해야 합니다.</p>
+          <p>• 주어진 값: r = ${enemy.r}, x = ${enemy.angleX}°</p>
+          <p>• 계산: 2 × π × ${enemy.r} × (${enemy.angleX} ÷ 360) = <strong class="text-cyan-400">${enemy.correctAnswer}</strong></p>
+        `;
+        formulaEl.innerText = `호의 길이 l = 2 × π × r × (x ÷ 360)`;
+      } else if (enemy.mode === 1) {
+        descEl.innerHTML = `
+          <p>부채꼴 넓이는 <strong>원의 넓이(π × r²)</strong>에 <strong>중심각의 비율(x ÷ 360)</strong>을 곱합니다.</p>
+          <p>• 주어진 값: r = ${enemy.r}, x = ${enemy.angleX}°</p>
+          <p>• 계산: π × ${enemy.r}² × (${enemy.angleX} ÷ 360) = <strong class="text-amber-400">${enemy.correctAnswer}</strong></p>
+        `;
+        formulaEl.innerText = `부채꼴 넓이 S = π × r² × (x ÷ 360)`;
+      } else if (enemy.mode === 2) {
+        descEl.innerHTML = `
+          <p>중심각을 몰라도 <strong>반지름(r)</strong>과 <strong>호의 길이(l)</strong>만 알면 삼각형 넓이 공식처럼 구할 수 있습니다!</p>
+          <p>• 계산: (1 ÷ 2) × ${enemy.r} × 4π = <strong class="text-sky-400">${enemy.correctAnswer}</strong></p>
+        `;
+        formulaEl.innerText = `중심각 모를 때 넓이 S = (1 ÷ 2) × r × l`;
+      } else {
+        descEl.innerHTML = `
+          <p>★ 중1 기하 핵심 함정: <strong>호의 길이와 부채꼴의 넓이는 중심각에 정비례</strong>하지만, <strong>현(선분)의 길이는 정비례하지 않습니다!</strong></p>
+          <p>중심각이 2배가 되어도 현의 길이는 2배보다 작습니다.</p>
+        `;
+        formulaEl.innerText = `현(Chord)의 길이는 중심각에 정비례하지 않음!`;
+      }
+
+      modal.classList.remove("hidden");
+
+      document.getElementById("btn-fb-retry").onclick = () => {
+        modal.classList.add("hidden");
+        openTargetConsole(enemy);
+      };
+
+      document.getElementById("btn-fb-skip").onclick = () => {
+        modal.classList.add("hidden");
+        enemy.x += 80;
+      };
+    }
+
+    let summaryCountdownTimer = null;
+    function triggerSectorCleared() {
+      const elapsedSec = ((Date.now() - sectorStartTimeMs) / 1000);
+      const elapsedText = elapsedSec.toFixed(1);
+
+      const parTimeSec = sectorTargetCount * 8;
+      const savedTimeSec = Math.max(0, parTimeSec - elapsedSec);
+      const timeBonus = Math.round(savedTimeSec * 100);
+
+      const baseBonus = 1200 + (player.sector * 300);
+      const totalBonus = baseBonus + timeBonus;
+      player.score += totalBonus;
+      updateHUD();
+
+      const modal = document.getElementById("modal-wave-summary");
+      document.getElementById("summary-sector-title").innerHTML = `<i class="fa-solid fa-certificate"></i> SECTOR ${player.sector} CLEARED!`;
+      document.getElementById("summary-sector-time").innerText = `${elapsedText}초 (기준 ${parTimeSec}s)`;
+      document.getElementById("summary-sector-bonus").innerHTML = `+${totalBonus.toLocaleString()}P <span class="text-[11px] text-cyan-400 font-normal">(신속 보너스 +${timeBonus.toLocaleString()}P)</span>`;
+
+      modal.classList.remove("hidden");
+
+      let remaining = 3.0;
+      const bar = document.getElementById("summary-progress-bar");
+      const txt = document.getElementById("summary-countdown-text");
+
+      clearInterval(summaryCountdownTimer);
+      summaryCountdownTimer = setInterval(() => {
+        remaining -= 0.1;
+        if (remaining <= 0) {
+          clearInterval(summaryCountdownTimer);
+          modal.classList.add("hidden");
+          setupSector(player.sector + 1);
+        } else {
+          bar.style.width = `${(remaining / 3.0) * 100}%`;
+          txt.innerText = `${remaining.toFixed(1)}초 후 다음 섹터 진입...`;
+        }
+      }, 100);
+    }
+
+    document.getElementById("btn-summary-skip").onclick = () => {
+      clearInterval(summaryCountdownTimer);
+      document.getElementById("modal-wave-summary").classList.add("hidden");
+      setupSector(player.sector + 1);
+    };
+
+    document.getElementById("btn-emergency-nova").onclick = () => {
+      if (gameState !== "PLAYING") return;
+      player.hp = Math.max(0, player.hp - 15);
+      triggerScreenFlash();
+      playSound('hit');
+      updateHUD();
+
+      enemies.forEach(e => {
+        e.x += 150;
+        createSparks(e.x, e.y, "#f43f5e");
+      });
+
+      if (player.hp <= 0) {
+        triggerGameOver();
+      }
+    };
+
+    function triggerScreenFlash() {
+      const screenEl = document.getElementById("screen-game");
+      screenEl.classList.remove("error-flash");
+      void screenEl.offsetWidth;
+      screenEl.classList.add("error-flash");
+    }
+
+    function createSparks(x, y, color) {
+      for (let i = 0; i < 16; i++) {
+        particles.push({
+          x, y,
+          vx: (Math.random() - 0.5) * 8,
+          vy: (Math.random() - 0.5) * 8,
+          radius: Math.random() * 2.5 + 1,
+          alpha: 1,
+          color: color
+        });
+      }
+    }
+
+    function gameLoop() {
+      if (gameState === "PLAYING") {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // 그리드 배경 렌더링
+        ctx.strokeStyle = "rgba(15, 23, 42, 0.7)";
+        ctx.lineWidth = 1;
+        for (let x = 0; x < canvas.width; x += 50) {
+          ctx.beginPath();
+          ctx.moveTo(x, 0);
+          ctx.lineTo(x, canvas.height);
+          ctx.stroke();
+        }
+        for (let y = 0; y < canvas.height; y += 50) {
+          ctx.beginPath();
+          ctx.moveTo(0, y);
+          ctx.lineTo(canvas.width, y);
+          ctx.stroke();
+        }
+
+        // 아크 캐논 기지 포대 그리기
+        drawBaseCannon();
+
+        // 부채꼴 레이저 빔 업데이트 & 드로잉
+        for (let i = sectorBeams.length - 1; i >= 0; i--) {
+          const beam = sectorBeams[i];
+          beam.draw();
+          checkBeamSplashCollisions(beam);
+          if (beam.update()) {
+            sectorBeams.splice(i, 1);
+          }
+        }
+
+        // 침공 적기 업데이트 & 드로잉
+        const baseX = 45;
+        for (let i = enemies.length - 1; i >= 0; i--) {
+          const enemy = enemies[i];
+          const hitBase = enemy.update(baseX);
+          if (hitBase) {
+            enemies.splice(i, 1);
+            if (enemies.length === 0 && player.hp > 0) {
+              triggerSectorCleared();
+            }
+          } else {
+            enemy.draw();
+          }
+        }
+
+        // 파티클 업데이트 & 드로잉
+        for (let i = particles.length - 1; i >= 0; i--) {
+          const p = particles[i];
+          p.x += p.vx;
+          p.y += p.vy;
+          p.alpha -= 0.04;
+          if (p.alpha <= 0) {
+            particles.splice(i, 1);
+            continue;
+          }
+          ctx.save();
+          ctx.globalAlpha = p.alpha;
+          ctx.fillStyle = p.color;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        }
+      }
+
+      animationFrameId = requestAnimationFrame(gameLoop);
+    }
+
+    function triggerGameOver() {
+      gameState = "GAMEOVER";
+      stopStopwatch();
+      if (animationFrameId) cancelAnimationFrame(animationFrameId);
+
+      const title = getTitleByScore(player.score);
+      const totalTimeText = document.getElementById("hud-timer").innerText;
+
+      document.getElementById("res-player-name").innerText = `${player.name} (${player.studentId})`;
+      document.getElementById("res-final-score").innerText = player.score.toLocaleString();
+      document.getElementById("res-total-time").innerText = totalTimeText;
+      document.getElementById("res-sector").innerText = `Sector ${player.sector}`;
+      document.getElementById("res-title-text").innerText = title;
+      document.getElementById("res-stats").innerText = `${player.blastedCount}기 / ${player.mistakes}회`;
+
+      document.getElementById("modal-gameover").classList.remove("hidden");
+      uploadRecordToGoogleSheet(title);
+    }
+
+    async function uploadRecordToGoogleSheet(title) {
+      const statusEl = document.getElementById("upload-status");
+      statusEl.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> 구글 시트로 기록 전송 중...`;
+
+      const payload = {
+        studentId: player.studentId,
+        name: player.name,
+        score: player.score,
+        sector: player.sector,
+        title: title,
+        blastedCount: player.blastedCount,
+        mistakes: player.mistakes
+      };
+
+      try {
+        await fetch(APPS_SCRIPT_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify(payload)
+        });
+        statusEl.innerHTML = `<span class="text-cyan-400 font-bold"><i class="fa-solid fa-check"></i> 은하 랭킹 시트에 성적 저장 완료!</span>`;
+      } catch (err) {
+        console.error("전송 에러:", err);
+        statusEl.innerHTML = `<span class="text-amber-400 font-semibold"><i class="fa-solid fa-circle-exclamation"></i> 로컬 보관 완료</span>`;
+      }
+    }
+
+    async function fetchRankings() {
+      const container = document.getElementById("ranking-list-container");
+      container.innerHTML = `
+        <div class="text-center py-12 text-slate-500 text-xs">
+          <i class="fa-solid fa-circle-notch fa-spin text-2xl mb-2 text-cyan-400"></i>
+          <p>구글 시트 실시간 데이터를 집계하는 중...</p>
+        </div>
+      `;
+
+      try {
+        const res = await fetch(APPS_SCRIPT_URL, { method: "GET" });
+        const json = await res.json();
+
+        if (json.status === "success" && json.ranking) {
+          renderRankingTable(json.ranking);
+        } else {
+          container.innerHTML = `<div class="p-4 text-center text-slate-400 text-xs">등록된 랭킹 데이터가 없습니다.</div>`;
+        }
+      } catch (err) {
+        container.innerHTML = `<div class="p-6 text-center text-rose-400 text-xs">랭킹 데이터를 불러오는 중 오류가 발생했습니다.</div>`;
+      }
+    }
+
+    function renderRankingTable(rankings) {
+      const container = document.getElementById("ranking-list-container");
+      if (rankings.length === 0) {
+        container.innerHTML = `<div class="p-4 text-center text-slate-400 text-xs">현재 등록된 비행 기록이 없습니다.</div>`;
+        return;
+      }
+
+      let html = `<div class="divide-y divide-slate-800">`;
+      rankings.forEach((item, idx) => {
+        let medal = `<span class="w-6 text-center font-bold text-slate-500 font-orbitron">${idx + 1}</span>`;
+        if (idx === 0) medal = `<i class="fa-solid fa-crown text-amber-400 text-sm w-6 text-center"></i>`;
+        if (idx === 1) medal = `<i class="fa-solid fa-medal text-slate-300 text-sm w-6 text-center"></i>`;
+        if (idx === 2) medal = `<i class="fa-solid fa-medal text-amber-600 text-sm w-6 text-center"></i>`;
+
+        html += `
+          <div class="py-2.5 px-3 flex items-center justify-between hover:bg-slate-800/50 rounded-xl transition text-xs sm:text-sm">
+            <div class="flex items-center gap-2">
+              ${medal}
+              <div>
+                <div class="font-bold text-white flex items-center gap-1.5">
+                  ${escapeHtml(item.name)} 
+                  <span class="text-[11px] text-slate-500 font-normal">(${escapeHtml(item.studentId)})</span>
+                </div>
+                <div class="text-[11px] text-cyan-400 font-medium">${escapeHtml(item.title || "원호 관측병")} · Sector ${item.sector || item.wave || 1}</div>
+              </div>
+            </div>
+            <div class="text-right">
+              <div class="font-black text-amber-400 font-orbitron text-sm sm:text-base">${Number(item.score).toLocaleString()}P</div>
+            </div>
+          </div>
+        `;
+      });
+      html += `</div>`;
+      container.innerHTML = html;
+    }
+
+    function escapeHtml(str) {
+      if (!str) return "";
+      return String(str).replace(/[&<>"']/g, function(m) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m];
+      });
+    }
+
+    function handleStartGame() {
+      const studentIdInput = document.getElementById("input-student-id");
+      const nameInput = document.getElementById("input-student-name");
+      const studentId = studentIdInput ? studentIdInput.value.trim() : "";
+      const name = nameInput ? nameInput.value.trim() : "";
+
+      if (!studentId || !name) {
+        const b = document.createElement("div");
+        b.className = "fixed top-6 left-1/2 -translate-x-1/2 bg-cyan-950 border border-cyan-400 text-white px-5 py-2.5 rounded-xl shadow-2xl z-50 text-xs sm:text-sm font-bold animate-bounce";
+        b.innerHTML = `<i class="fa-solid fa-circle-info text-cyan-300"></i> 학번과 이름을 모두 입력해 주세요!`;
+        document.body.appendChild(b);
+        setTimeout(() => b.remove(), 2500);
+        return;
+      }
+
+      initAudio();
+
+      player.studentId = studentId;
+      player.name = name;
+      player.score = 0;
+      player.sector = 1;
+      player.hp = 100;
+      player.blastedCount = 0;
+      player.mistakes = 0;
+      player.cannonRadiusR = 6;
+
+      document.getElementById("screen-login").classList.add("hidden");
+      document.getElementById("screen-game").classList.remove("hidden");
+
+      gameState = "PLAYING";
+      resizeCanvas();
+      setupSector(1);
+      startStopwatch();
+
+      if (animationFrameId) cancelAnimationFrame(animationFrameId);
+      animationFrameId = requestAnimationFrame(gameLoop);
+    }
+
+    document.getElementById("btn-start-game").onclick = handleStartGame;
+
+    document.getElementById("input-student-id").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") document.getElementById("input-student-name").focus();
+    });
+    document.getElementById("input-student-name").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") handleStartGame();
+    });
+
+    document.getElementById("btn-restart-game").onclick = () => {
+      document.getElementById("modal-gameover").classList.add("hidden");
+      handleStartGame();
+    };
+
+    document.getElementById("btn-view-ranks").onclick = () => {
+      document.getElementById("modal-ranking").classList.remove("hidden");
+      fetchRankings();
+    };
+    document.getElementById("btn-go-hall-of-fame").onclick = () => {
+      document.getElementById("modal-gameover").classList.add("hidden");
+      document.getElementById("modal-ranking").classList.remove("hidden");
+      fetchRankings();
+    };
+    document.getElementById("btn-close-ranking").onclick = () => {
+      document.getElementById("modal-ranking").classList.add("hidden");
+    };
+    document.getElementById("btn-refresh-ranking").onclick = fetchRankings;
+
+    document.getElementById("btn-view-rules").onclick = () => {
+      document.getElementById("modal-rules").classList.remove("hidden");
+    };
+    document.getElementById("btn-close-rules").onclick = () => {
+      document.getElementById("modal-rules").classList.add("hidden");
+    };
+    document.getElementById("btn-rules-ok").onclick = () => {
+      document.getElementById("modal-rules").classList.add("hidden");
+    };
+
+    window.addEventListener("load", resizeCanvas);
+  </script>
+</body>
+</html>
